@@ -56,7 +56,14 @@ Task("for")
 Task("while")
 .Does(() =>
 {
-  Information("while");
+  while(true){
+    Console.Write("Enter：");
+    string input = Console.ReadLine();
+    if(input == "exit"){
+      break;
+    }
+    Console.WriteLine(input);
+  }
 });
 
 
@@ -84,6 +91,21 @@ int SampleIntFunction()
 {
   return 1;
 }
+
+// 課題用
+Task("example1").Does(() => {
+  for(int i=1;i<101;i++){
+    if(i%3==0 && i%5==0){
+      Console.WriteLine("FiizBuzz");
+    }else if(i%3==0){
+      Console.WriteLine("Fizz");
+    }else if(i%5==0){
+      Console.WriteLine("Buzz");
+    }else{
+      Console.WriteLine(i);
+    }
+  }
+});
 
 // 指定されたターゲットの実行。必須
 RunTarget(target);
