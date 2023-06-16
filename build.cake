@@ -110,49 +110,20 @@ Task("example1").Does(() => {
 // 課題用
 
 public class Pizza{
-  public string type;
+  public string name;
   public int price;
   public int sSizeStock;
   public int mSizeStock;
   public int lSizeStock;
 
-  public Pizza(string type, int price, int sSizeStock, int mSizeStock, int lSizeStock){
-    this.type = type;
+  public Pizza(string name, int price, int sSizeStock, int mSizeStock, int lSizeStock){
+    this.name = name;
     this.price = price;
     this.sSizeStock = sSizeStock;
     this.mSizeStock = mSizeStock;
     this.lSizeStock = lSizeStock;
   }
 }
-
-  public void addStock(int add){
-    /*switch(size){
-      case "S":
-        this.sSizeStock += add;
-        Console.WriteLine($"{this.type}のSサイズを{add.ToString()}枚追加しました。");
-        break;
-      case "M":
-        this.mSizeStock += add;
-        Console.WriteLine($"{this.type}のMサイズを{add.ToString()}枚追加しました。");
-        break;
-      case "L":
-        this.lSizeStock += add;
-        Console.WriteLine($"{this.type}のLサイズを{add.ToString()}枚追加しました。");
-        break;
-
-    }*/
-    
-  }
-
-  /* void checkStock(Pizza[] pizzaArray){
-    foreach (Pizza pizaa in pizzaArray){
-      Console.WriteLine($"{this.type} S:{this.sSizeStock.ToString()}枚");
-      Console.WriteLine($"{this.type} M:{this.mSizeStock.ToString()}枚");
-      Console.WriteLine($"{this.type} L:{this.lSizeStock.ToString()}枚");
-    }
-  } */
-
-  
 
 Task("pizza")
 .Does(() => {
@@ -165,235 +136,266 @@ Task("pizza")
   bool end=false;
 
   while(!(end)){
-    Console.WriteLine("--------------------");
+    line();
     Console.WriteLine("ピザ注文システム");
     Console.WriteLine("何をするか番号を入力してください");
     Console.WriteLine("1. 注文受付\n2. 在庫確認\n3. 在庫追加\n4. 終了");
     
-    Console.WriteLine("番号を入力");
+    Console.Write("番号を入力：");
     int cmd = int.Parse(Console.ReadLine());
 
     switch(cmd){
       case 1:
-        Console.WriteLine("--------------------");
-        Order(pizzaArray);
+        line();
+        order(pizzaArray);
         break;
       case 2:
-        Console.WriteLine("--------------------");
-        CheckStock(pizzaArray);
+        line();
+        checkStock(pizzaArray);
         break;
       case 3:
-        Console.WriteLine("--------------------");
-        AddStock(pizzaArray);
+        line();
+        addStock(pizzaArray);
         break;
       case 4:
-        Console.WriteLine("--------------------");
+        line();
         Console.WriteLine("ピザ注文システムを終了します。");
         end = true;
         break;
       default:
-        Console.WriteLine("--------------------");
-        Console.WriteLine("適切な値が入力されていません。");
+        line();
+        inputError();
         break;
     }
   }
 });
 
 //注文用メソッド
-Pizza[] Order(Pizza[] pizzaArray){
-  string type,size;
-  int count,price,totalPrice,cmd;
+Pizza[] order(Pizza[] pizzaArray){
+  int price,totalPrice,cmd;
   price = 0;
   totalPrice = 0;
 
-  //var orderList = new List<string>();
-
-  while(true){
-    while(true){
-        foreach(Pizza pizza in pizzaArray){
-          Console.WriteLine(pizza.type);
-        }
-        Console.Write("ピザの名前を入力してください：");
-        type = Console.ReadLine();
-        // ピザの種類が存在するか？
-        foreach(Pizza pizza in pizzaArray){
-          if(type == pizza.type){
-            goto TYPE_CLEAR;
+  string name = selectNameOrder( pizzaArray);   
+  string size = selectSize();
+  int count = selectCount();
+  // 在庫チェック
+  foreach(Pizza pizza in pizzaArray){
+    bool over=false;
+    if(name == pizza.name){
+      switch(size){
+        case "S":
+          pizza.sSizeStock=stockOver(pizza.sSizeStock,count, out over);
+          if(over){
+            return pizzaArray;
           }
-        }
-      Console.WriteLine("その種類のピザは存在しません。");
-    }
-    TYPE_CLEAR:
-      
-    while(true){
-      Console.Write("サイズを入力してください：");
-      size = Console.ReadLine();
-      // ピザのサイズが存在するか？
-      if(size == "S" || size == "M" || size == "L"){
-        break;
+          break;
+        case "M":
+          pizza.lSizeStock=stockOver(pizza.lSizeStock,count, out over);
+          if(over){
+            return pizzaArray;
+          }
+          break;
+        case "L":
+          pizza.lSizeStock=stockOver(pizza.lSizeStock,count, out over);
+          if(over){
+            return pizzaArray;
+          }
+          break;
       }
-      Console.WriteLine("そのサイズのピザは存在しません。");
     }
-
-    Console.Write("枚数を入力してください：");
-    count = int.Parse(Console.ReadLine());
-    // 在庫チェック
-    switch(size){
-      case "S":
-        foreach(Pizza pizza in pizzaArray){
-          if(type == pizza.type){
-            if(count <= pizza.sSizeStock){
-              pizza.sSizeStock = pizza.sSizeStock - count;   
-            }else{
-              Console.WriteLine("在庫不足です。");
-              return pizzaArray;
-            }
-          }
-        }
-        break;
-      case "M":
-        foreach(Pizza pizza in pizzaArray){
-          if(type == pizza.type){
-            if(count <= pizza.mSizeStock){
-              pizza.mSizeStock = pizza.mSizeStock - count;               
-            }else{
-              Console.WriteLine("在庫不足です。");
-              return pizzaArray;
-            }
-          }
-        }
-        break;
-      case "L":
-        foreach(Pizza pizza in pizzaArray){
-          if(type == pizza.type){
-            if(count <= pizza.lSizeStock){
-              pizza.lSizeStock = pizza.lSizeStock - count;               
-            }else{
-              Console.WriteLine("在庫不足です。");
-              return pizzaArray;
-            }
-          }
-        }
-        break;
-    }
+  }
     
-    //料金の計算
-    foreach(Pizza pizza in pizzaArray){
-      if(type == pizza.type){
-        price = pizza.price*count;
-      }
+  //料金の計算
+  foreach(Pizza pizza in pizzaArray){
+    if(name == pizza.name){
+      price = pizza.price*count;
     }
-    switch(size){
-      case "S":
-        price = price * 8 / 10;
-        break;
-      case "M":
+  }
+  switch(size){
+    case "S":
+      price = price * 8 / 10;
+      break;
+    case "M":
         price = price * 10 / 10;
-        break;
-      case "L":
-        price = price * 12 / 10;
-        break;
-    }
+      break;
+    case "L":
+      price = price * 12 / 10;
+      break;
+  }
       
-    totalPrice = totalPrice + price;
-    while(true){
-      Console.WriteLine("注文を追加する場合は1,終了する場合は0");
-      Console.Write("番号を入力：");
-      cmd = int.Parse(Console.ReadLine());
-      if(cmd == 0){
-        goto ORDER_END;
-      }else if(cmd == 1){
-        break;
-      }else{
-        Console.WriteLine("適切な値が入力されていません。");
-      }
+  totalPrice = totalPrice + price;
+  while(true){
+    Console.WriteLine("注文を追加する場合は1,終了する場合は0");
+    Console.Write("番号を入力：");
+    cmd = int.Parse(Console.ReadLine());
+    if(cmd == 0){
+      goto ORDER_END;
+    }else if(cmd == 1){
+      break;
+    }else{
+      inputError();
     }
   }
   ORDER_END:
 
   Console.WriteLine($"合計金額:{totalPrice}円");
 
-  Console.WriteLine("処理の完了");
-
   return pizzaArray;
-
-  
-
-  //Console.WriteLine("システムはこれ以上、実装されていません。");
 }
 
 //在庫確認用メソッド
-void CheckStock(Pizza[] pizzaArray){
+void checkStock(Pizza[] pizzaArray){
   foreach(Pizza pizza in pizzaArray){
-    Console.WriteLine($"{pizza.type} S:{pizza.sSizeStock.ToString()}枚");
-    Console.WriteLine($"{pizza.type} M:{pizza.mSizeStock.ToString()}枚");
-    Console.WriteLine($"{pizza.type} L:{pizza.lSizeStock.ToString()}枚");
+    Console.WriteLine($"{pizza.name} S:{pizza.sSizeStock.ToString()}枚");
+    Console.WriteLine($"{pizza.name} M:{pizza.mSizeStock.ToString()}枚");
+    Console.WriteLine($"{pizza.name} L:{pizza.lSizeStock.ToString()}枚");
   }
 }
 
 //在庫補充用メソッド
-Pizza[] AddStock(Pizza[] pizzaArray){
-  string type,size;
+Pizza[] addStock(Pizza[] pizzaArray){
   while(true){
-    Console.WriteLine("在庫を追加するピザを選んでください");
-    int x=1;
-    foreach(Pizza pizza in pizzaArray){
-      Console.WriteLine($"{x}.{pizza.type}");
-      x++;
+    string name = selectNameAdd( pizzaArray);
+    if( name == "0"){
+      return pizzaArray;
     }
-    Console.WriteLine("0.メニューに戻る");
-    Console.Write("番号を入力：");
-    int cmd = int.Parse(Console.ReadLine());
-    switch(cmd){
-      case 1:
-        break;
-      case 2:
-        break;
-      case 3:
-        break;
-      case 4:
-        break;
-      case 5:
-        break;
-      case 0:
-        return pizzaArray;
-      default:
-        Console.WriteLine("値が適切ではありません。");
-        Console.WriteLine("--------------------");
-        continue;
-    }
+    Console.WriteLine($"追加するピザ：{name}");
 
-    type = pizzaArray[cmd-1].type;
-    Console.WriteLine($"追加するピザ：{pizzaArray[cmd-1].type}");
-    while(true){
-      Console.Write("サイズを入力してください：");
-      size = Console.ReadLine();
-      if( size == "S" || size == "M" || size == "L" ){
-        break;
-      }else{
-        Console.WriteLine("適切な値が入力されませんでした。");
+    string size = selectSize();
+
+    int count = selectCount();
+
+    foreach(Pizza pizza in pizzaArray){
+      if( name == pizza.name ){
+        switch(size){
+          case "S":
+            pizza.sSizeStock += count;
+            break;
+          case "M":
+            pizza.mSizeStock += count;
+            break;
+          case "L":
+            pizza.lSizeStock += count;
+            break;
+        }
       }
     }
-    Console.Write("枚数を入力してください：");
-    
-    int count = int.Parse(Console.ReadLine());
-
-    switch(size){
-      case "S":
-        pizzaArray[cmd-1].sSizeStock += count;
-        break;
-      case "M":
-        pizzaArray[cmd-1].mSizeStock += count;
-        break;
-      case "L":
-        pizzaArray[cmd-1].lSizeStock += count;
-        break;
-    }
-    Console.WriteLine($"{pizzaArray[cmd-1].type} {size}を{count}枚追加しました。");
-    Console.WriteLine("--------------------");
+    Console.WriteLine($"{name} {size}を{count}枚追加しました。");
+    line();
   }
-  //Console.WriteLine("システムが実装されていません。");
 }
+
+//点線用
+void line(){
+  Console.WriteLine("--------------------");
+}
+
+//入力用
+//ピザの種類(注文)
+string selectNameOrder(Pizza[] pizzaArray){
+  while(true){
+    dispName(pizzaArray);
+    Console.Write("ピザの名前(番号でも可)を入力してください：");
+    string name = Console.ReadLine();
+    name = nameChange( pizzaArray, name);
+    if(nameCheck( pizzaArray, name)){
+      return name;
+    }
+  }
+}
+
+//ピザの種類(追加)
+string selectNameAdd(Pizza[] pizzaArray){
+  Console.WriteLine("在庫を追加するピザを選んでください");
+  while(true){
+    dispName(pizzaArray);
+    Console.WriteLine("0.メニューに戻る");
+    Console.Write("番号を入力：");
+    string cmd = Console.ReadLine();
+    if( cmd == "0" || cmd == "メニュー" || cmd == "メニューに戻る"){
+      cmd = "0";
+      return cmd;
+    }
+    cmd = nameChange( pizzaArray, cmd);
+    if(nameCheck( pizzaArray, cmd)){
+      return cmd;
+    }
+  }
+}
+
+//ピザの一覧表示
+void dispName(Pizza[] pizzaArray){
+    int x=1;
+    foreach(Pizza pizza in pizzaArray){
+      Console.WriteLine($"{x}.{pizza.name}");
+      x++;
+    }
+}
+
+//サイズを選択
+string selectSize(){
+  while(true){
+    Console.Write("サイズを入力してください：");
+    string size = Console.ReadLine();
+    size = size.ToUpper();
+    // ピザのサイズが存在するか？
+    if(size == "S" || size == "M" || size == "L"){
+      return size;
+    }
+    inputError();
+  }
+}
+
+//枚数を入力
+int selectCount(){
+  Console.Write("枚数を入力してください：");
+  int count = int.Parse(Console.ReadLine());
+  return count;
+}
+
+//在庫チェック用
+int stockOver(int stock, int order, out bool over){
+  if(order <= stock){
+    stock -= order;
+    over = false;
+  }else{
+    Console.WriteLine($"在庫不足です。(在庫量：{stock}枚)");
+    over = true;
+  }
+  return stock;
+}
+
+//nameをstrからintに変換
+string nameChange( Pizza[] pizzaArray, string name){
+  int nameId;
+  if(int.TryParse(name, out nameId)){
+    if( nameId>=1 && nameId<=5 ){
+      name = pizzaArray[nameId-1].name;
+    }
+  }
+  return name;
+}
+//ここまで
+
+//nameのエラーチェック
+bool nameCheck( Pizza[] pizzaArray, string name){
+  //異常がなければtrueが返され、異常があればfalseが返される。
+  foreach(Pizza pizza in pizzaArray){
+    if( pizza.name == name ){
+      return true;
+    }
+  }
+  inputError();
+  return false;
+}
+
+//エラーメッセージ用
+//入力エラー
+void inputError(){
+  Console.WriteLine("適切な入力ではありません。");
+}
+//ここまで
 
 // 指定されたターゲットの実行。必須
 RunTarget(target);
