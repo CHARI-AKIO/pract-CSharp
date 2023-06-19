@@ -172,73 +172,73 @@ Task("pizza")
 
 //注文用メソッド
 Pizza[] order(Pizza[] pizzaArray){
-  int price,totalPrice,cmd;
+  string name,size;
+  int count,price,totalPrice,cmd;
   price = 0;
   totalPrice = 0;
 
-  string name = selectNameOrder( pizzaArray);   
-  string size = selectSize();
-  int count = selectCount();
-  // 在庫チェック
-  foreach(Pizza pizza in pizzaArray){
-    bool over=false;
-    if(name == pizza.name){
-      switch(size){
-        case "S":
-          pizza.sSizeStock=stockOver(pizza.sSizeStock,count, out over);
-          if(over){
-            return pizzaArray;
-          }
-          break;
-        case "M":
-          pizza.lSizeStock=stockOver(pizza.lSizeStock,count, out over);
-          if(over){
-            return pizzaArray;
-          }
-          break;
-        case "L":
-          pizza.lSizeStock=stockOver(pizza.lSizeStock,count, out over);
-          if(over){
-            return pizzaArray;
-          }
-          break;
+  while(true){
+    name = selectNameOrder( pizzaArray);   
+    size = selectSize();
+    count = selectCount();
+    // 在庫チェック
+    foreach(Pizza pizza in pizzaArray){
+      bool over=false;
+      if(name == pizza.name){
+        switch(size){
+          case "S":
+            pizza.sSizeStock=stockOver(pizza.sSizeStock,count, out over);
+            if(over){
+              return pizzaArray;
+            }
+            break;
+          case "M":
+            pizza.mSizeStock=stockOver(pizza.mSizeStock,count, out over);
+            if(over){
+              return pizzaArray;
+            }
+            break;
+          case "L":
+            pizza.lSizeStock=stockOver(pizza.lSizeStock,count, out over);
+            if(over){
+              return pizzaArray;
+            }
+            break;
+        }
       }
     }
-  }
-    
-  //料金の計算
-  foreach(Pizza pizza in pizzaArray){
-    if(name == pizza.name){
-      price = pizza.price*count;
-    }
-  }
-  switch(size){
-    case "S":
-      price = price * 8 / 10;
-      break;
-    case "M":
-        price = price * 10 / 10;
-      break;
-    case "L":
-      price = price * 12 / 10;
-      break;
-  }
       
-  totalPrice = totalPrice + price;
-  while(true){
+    //料金の計算
+    foreach(Pizza pizza in pizzaArray){
+      if(name == pizza.name){
+        price = pizza.price*count;
+      }
+    }
+    switch(size){
+      case "S":
+        price = price * 8 / 10;
+        break;
+      case "M":
+          price = price * 10 / 10;
+        break;
+      case "L":
+        price = price * 12 / 10;
+        break;
+    }
+        
+    totalPrice = totalPrice + price;
+    
     Console.WriteLine("注文を追加する場合は1,終了する場合は0");
     Console.Write("番号を入力：");
     cmd = int.Parse(Console.ReadLine());
     if(cmd == 0){
-      goto ORDER_END;
-    }else if(cmd == 1){
       break;
+    }else if(cmd == 1){
+      
     }else{
       inputError();
     }
   }
-  ORDER_END:
-
   Console.WriteLine($"合計金額:{totalPrice}円");
 
   return pizzaArray;
